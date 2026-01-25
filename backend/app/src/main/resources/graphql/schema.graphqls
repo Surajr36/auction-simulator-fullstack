@@ -1,0 +1,21 @@
+type Player {
+  id: ID!
+  name: String!
+  category: String!
+  basePrice: Float!
+  status: String!
+}
+
+input CreatePlayerInput {
+  name: String!
+  category: String!
+  basePrice: Float!
+}
+
+type Query {
+  players: [Player!]!
+}
+
+type Mutation {
+  createPlayer(input: CreatePlayerInput!): Player!
+}
