@@ -105,3 +105,17 @@ extend type Query {
 extend type Mutation {
   placeBid(input: PlaceBidInput!): Bid!
 }
+
+input AddPlayerToAuctionInput {
+  auctionId: ID!
+  playerId: ID!
+  basePrice: Float!
+}
+
+extend type Mutation {
+  addPlayerToAuction(input: AddPlayerToAuctionInput!): AuctionPlayer!
+}
+
+extend type Mutation {
+  startAuctionPlayer(auctionPlayerId: ID!): AuctionPlayer!
+}
