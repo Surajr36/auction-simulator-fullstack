@@ -11,6 +11,13 @@ enum AuctionStatus {
   FINISHED
 }
 
+enum AuctionPlayerStatus {
+  NOT_STARTED
+  LIVE
+  SOLD
+  UNSOLD
+}
+
 type Auction {
   id: ID!
   status: AuctionStatus!
@@ -66,4 +73,35 @@ extend type Query {
 
 extend type Mutation {
   createTeam(input: CreateTeamInput!): Team!
+}
+
+type AuctionPlayer {
+  id: ID!
+  player: Player!
+  basePrice: Float!
+  currentPrice: Float!
+  status: AuctionPlayerStatus!
+  currentHighestBidTeam: Team
+}
+
+type Bid {
+  id: ID!
+  team: Team!
+  amount: Float!
+  createdAt: String!
+}
+
+input PlaceBidInput {
+  auctionPlayerId: ID!
+  teamId: ID!
+  amount: Float!
+}
+
+extend type Query {
+  auctionPlayers(auctionId: ID!): [AuctionPlayer!]!
+  bids(auctionPlayerId: ID!): [Bid!]!
+}
+
+extend type Mutation {
+  placeBid(input: PlaceBidInput!): Bid!
 }
