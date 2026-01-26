@@ -5,6 +5,27 @@ enum PlayerCategory {
   WK
 }
 
+enum AuctionStatus {
+  CREATED
+  LIVE
+  FINISHED
+}
+
+type Auction {
+  id: ID!
+  status: AuctionStatus!
+  createdAt: String!
+}
+
+extend type Query {
+  auctions: [Auction!]!
+}
+
+extend type Mutation {
+  createAuction: Auction!
+  startAuction(auctionId: ID!): Auction!
+}
+
 type Player {
   id: ID!
   name: String!
@@ -25,4 +46,24 @@ type Query {
 
 type Mutation {
   createPlayer(input: CreatePlayerInput!): Player!
+}
+
+type Team {
+  id: ID!
+  name: String!
+  purse: Float!
+  maxSquadSize: Int!
+}
+
+input CreateTeamInput {
+  name: String!
+  purse: Float!
+}
+
+extend type Query {
+  teams: [Team!]!
+}
+
+extend type Mutation {
+  createTeam(input: CreateTeamInput!): Team!
 }
