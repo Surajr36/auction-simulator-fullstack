@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.auction.backend.domain.Player;
 import com.auction.backend.domain.PlayerCategory;
+import com.auction.backend.exception.DomainException;
 import com.auction.backend.repository.PlayerRepository;
 
 
@@ -22,7 +23,17 @@ public class PlayerService {
     @Transactional
     public Player createPlayer(String name, PlayerCategory category, BigDecimal basePrice)
     {
-        Player player=new Player(name, category, basePrice);
+        if (name == null || name.trim().isEmpty()) {
+            throw new DomainException("Player name must not be empty");
+        }
+        if (category == null) {
+            throw new DomainException("Player category must be specified");
+        }
+        if (basePrice == null || basePrice.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new DomainException("Base price must be greater than zero");
+        }
+
+        Player player = new Player(name.trim(), category, basePrice);
         return playerRepository.save(player);
     }
 

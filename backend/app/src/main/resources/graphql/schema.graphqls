@@ -1,14 +1,21 @@
+enum PlayerCategory {
+  BAT
+  BOWL
+  AR
+  WK
+}
+
 type Player {
   id: ID!
   name: String!
-  category: String!
+  category: PlayerCategory!
   basePrice: Float!
   status: String!
 }
 
 input CreatePlayerInput {
   name: String!
-  category: String!
+  category: PlayerCategory!
   basePrice: Float!
 }
 
