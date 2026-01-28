@@ -35,3 +35,7 @@ export type Bid = {
 export type GetBidsResponse = {
   bids: Bid[];
 };
+
+export type PlaceBidResponse = {
+  placeBid: AuctionPlayer;
+};

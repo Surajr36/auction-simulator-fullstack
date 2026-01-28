@@ -32,3 +32,17 @@ export const GET_BIDS_FOR_AUCTION_PLAYER = gql`
     }
   }
 `;
+
+export const PLACE_BID = gql`
+  mutation PlaceBid($auctionPlayerId: ID!, $amount: Float!) {
+    placeBid(auctionPlayerId: $auctionPlayerId, amount: $amount) {
+      id
+      currentPrice
+      status
+      currentHighestBidTeam {
+        id
+        name
+      }
+    }
+  }
+`;
