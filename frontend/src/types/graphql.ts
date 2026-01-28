@@ -21,3 +21,17 @@ export type AuctionPlayer = {
 export type GetAuctionPlayersResponse = {
   auctionPlayers: AuctionPlayer[];
 };
+
+export type Bid = {
+  id: string;
+  amount: number;
+  createdAt: string;
+  team: {
+    id: string;
+    name: string;
+  };
+};
+
+export type GetBidsResponse = {
+  bids: Bid[];
+};
