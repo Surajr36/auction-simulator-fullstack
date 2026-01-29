@@ -5,6 +5,11 @@ enum PlayerCategory {
   WK
 }
 
+enum Role {
+  ADMIN
+  TEAM_USER
+}
+
 enum AuctionStatus {
   CREATED
   LIVE
@@ -118,4 +123,35 @@ extend type Mutation {
 
 extend type Mutation {
   startAuctionPlayer(auctionPlayerId: ID!): AuctionPlayer!
+}
+
+# Authentication Types
+type User {
+  id: ID!
+  username: String!
+  email: String!
+  role: Role!
+  team: Team
+}
+
+type AuthPayload {
+  token: String!
+  user: User!
+}
+
+input RegisterInput {
+  username: String!
+  password: String!
+  email: String!
+  role: Role!
+  teamId: ID
+}
+
+extend type Mutation {
+  register(input: RegisterInput!): AuthPayload!
+  login(username: String!, password: String!): AuthPayload!
+}
+
+extend type Query {
+  me: User!
 }

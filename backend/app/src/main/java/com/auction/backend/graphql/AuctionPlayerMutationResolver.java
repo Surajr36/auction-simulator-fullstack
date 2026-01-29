@@ -5,6 +5,7 @@ import com.auction.backend.graphql.input.AddPlayerToAuctionInput;
 import com.auction.backend.service.AuctionPlayerService;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 
 import java.math.BigDecimal;
@@ -19,6 +20,7 @@ public class AuctionPlayerMutationResolver {
     }
 
     @MutationMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public AuctionPlayer addPlayerToAuction(
             @Argument AddPlayerToAuctionInput input
     ) {
@@ -30,6 +32,7 @@ public class AuctionPlayerMutationResolver {
     }
 
     @MutationMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public AuctionPlayer startAuctionPlayer(@Argument Long auctionPlayerId) {
         return auctionPlayerService.startAuctionPlayer(auctionPlayerId);
     }
