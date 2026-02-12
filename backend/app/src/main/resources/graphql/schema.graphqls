@@ -87,6 +87,8 @@ type AuctionPlayer {
   currentPrice: Float!
   status: AuctionPlayerStatus!
   currentHighestBidTeam: Team
+  timerStartAt: String
+  timerEndAt: String
 }
 
 type Bid {

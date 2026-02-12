@@ -11,11 +11,13 @@ export type Team = {
 
 export type AuctionPlayer = {
   id: string;
-  status: "LIVE" | "NOT_STARTED" | "SOLD";
+  status: "LIVE" | "NOT_STARTED" | "SOLD" | "UNSOLD";
   basePrice: number;
   currentPrice: number;
   player: Player;
   currentHighestBidTeam: Team | null;
+  timerStartAt?: string; // ISO 8601 timestamp
+  timerEndAt?: string; // ISO 8601 timestamp
 };
 
 export type GetAuctionPlayersResponse = {

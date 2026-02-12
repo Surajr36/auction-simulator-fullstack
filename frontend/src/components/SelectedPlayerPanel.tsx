@@ -6,6 +6,7 @@ import type {
 } from "../types/graphql";
 import { GET_BIDS_FOR_AUCTION_PLAYER, PLACE_BID } from "../graphql/queries";
 import { useState } from "react";
+import { CountdownTimer } from "./CountdownTimer";
 
 type Props = {
   auctionPlayer: AuctionPlayer | null;
@@ -94,6 +95,17 @@ export default function SelectedPlayerPanel({ auctionPlayer }: Props) {
         <div>
           <span className="font-medium">Status:</span> {auctionPlayer.status}
         </div>
+
+        {/* Timer Countdown */}
+        {auctionPlayer.status === "LIVE" && (
+          <div className="bg-blue-50 rounded-lg p-3">
+            <div className="text-sm text-gray-600 mb-1">Time Remaining:</div>
+            <CountdownTimer
+              timerEndAt={auctionPlayer.timerEndAt}
+              status={auctionPlayer.status}
+            />
+          </div>
+        )}
 
         {auctionPlayer.currentHighestBidTeam && (
           <div>

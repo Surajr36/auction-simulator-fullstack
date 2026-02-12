@@ -1,3 +1,5 @@
+design-docs/
+backend/database/
 # Java
 target/
 *.class

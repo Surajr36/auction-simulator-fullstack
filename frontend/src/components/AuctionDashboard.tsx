@@ -10,6 +10,7 @@ export default function AuctionDashboard() {
     GET_AUCTION_PLAYERS,
     {
       variables: { auctionId: "1" },
+      pollInterval: 3000, // Poll every 3 seconds for real-time updates
     },
   );
 

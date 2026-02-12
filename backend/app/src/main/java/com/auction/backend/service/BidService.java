@@ -33,6 +33,11 @@ public class BidService {
         AuctionPlayer auctionPlayer = auctionPlayerRepository.findById(auctionPlayerId)
                 .orElseThrow(() -> new DomainException("AuctionPlayer not found"));
 
+        // Validate timer not expired
+        if (auctionPlayer.isTimerExpired()) {
+            throw new DomainException("Bidding time has expired");
+        }
+
         if (auctionPlayer.getStatus() != AuctionPlayerStatus.LIVE) {
             throw new DomainException("Bidding is not open for this player");
         }
@@ -58,6 +63,10 @@ public class BidService {
 
         // Update auction player state
         auctionPlayer.updateCurrentBid(team, amount);
+        
+        // Reset timer to 30 seconds
+        auctionPlayer.resetTimer();
+        
         auctionPlayerRepository.save(auctionPlayer);
 
         return bid;

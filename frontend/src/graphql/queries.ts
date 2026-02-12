@@ -6,6 +6,8 @@ export const GET_AUCTION_PLAYERS = gql`
       status
       basePrice
       currentPrice
+      timerStartAt
+      timerEndAt
       player {
         id
         name
@@ -39,6 +41,7 @@ export const PLACE_BID = gql`
       id
       currentPrice
       status
+      timerEndAt
       currentHighestBidTeam {
         id
         name

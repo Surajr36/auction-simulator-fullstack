@@ -32,6 +32,12 @@ public class AuctionPlayer {
     @ManyToOne
     private Team currentHighestBidTeam;
 
+    @Column
+    private Instant timerStartAt;
+
+    @Column
+    private Instant timerEndAt;
+
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -76,12 +82,28 @@ public class AuctionPlayer {
         return currentHighestBidTeam;
     }
 
+    public Instant getTimerStartAt() {
+        return timerStartAt;
+    }
+
+    public Instant getTimerEndAt() {
+        return timerEndAt;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
     /* ---- Domain behavior (minimal, intentional) ---- */
 
     public void start() {
         if (status != AuctionPlayerStatus.NOT_STARTED) {
             throw new IllegalStateException("AuctionPlayer cannot be started");
         }
+        
+        Instant now = Instant.now();
+        this.timerStartAt = now;
+        this.timerEndAt = now.plusSeconds(120);  // 2 minutes initial timer
         this.status = AuctionPlayerStatus.LIVE;
     }
 
@@ -109,5 +131,28 @@ public class AuctionPlayer {
     this.currentHighestBidTeam = team;
     this.currentPrice = amount;
 }
+
+    /**
+     * Reset timer to 30 seconds from now.
+     * Called after every valid bid.
+     */
+    public void resetTimer() {
+        if (status != AuctionPlayerStatus.LIVE) {
+            throw new IllegalStateException("Can only reset timer for LIVE players");
+        }
+        
+        this.timerEndAt = Instant.now().plusSeconds(30);  // 30 seconds
+    }
+
+    /**
+     * Check if timer has expired.
+     * Used by scheduled task and bid validation.
+     */
+    public boolean isTimerExpired() {
+        if (timerEndAt == null) {
+            return false;
+        }
+        return Instant.now().isAfter(timerEndAt);
+    }
 
 }

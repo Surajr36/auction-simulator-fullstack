@@ -8,4 +8,10 @@ import java.util.List;
 public interface BidRepository extends JpaRepository<Bid, Long> {
 
     List<Bid> findByAuctionPlayerIdOrderByCreatedAtAsc(Long auctionPlayerId);
+    
+    /**
+     * Count bids for an auction player.
+     * Used to determine if player should be marked SOLD or UNSOLD.
+     */
+    long countByAuctionPlayerId(Long auctionPlayerId);
 }
