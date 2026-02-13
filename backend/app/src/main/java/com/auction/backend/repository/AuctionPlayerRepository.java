@@ -16,4 +16,11 @@ public interface AuctionPlayerRepository extends JpaRepository<AuctionPlayer, Lo
      * Used by scheduled task for auto-expiry.
      */
     List<AuctionPlayer> findByStatusAndTimerEndAtBefore(AuctionPlayerStatus status, Instant time);
+
+    /**
+     * Find LIVE, non-paused auction players whose timer has expired.
+     * Used by scheduled task — skips admin-paused players so they are not auto-expired.
+     */
+    List<AuctionPlayer> findByStatusAndTimerEndAtBeforeAndAdminPausedFalse(
+            AuctionPlayerStatus status, Instant time);
 }

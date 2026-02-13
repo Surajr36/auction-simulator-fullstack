@@ -89,6 +89,9 @@ type AuctionPlayer {
   currentHighestBidTeam: Team
   timerStartAt: String
   timerEndAt: String
+  adminPaused: Boolean!
+  adminPausedAt: String
+  timerRemainingOnPause: Float
 }
 
 type Bid {
@@ -156,4 +159,29 @@ extend type Mutation {
 
 extend type Query {
   me: User!
+}
+
+# WAIT System Types
+
+type WaitRequest {
+  id: ID!
+  auctionPlayer: AuctionPlayer!
+  team: Team
+  adminWait: Boolean!
+  createdAt: String!
+}
+
+input UseWaitInput {
+  auctionPlayerId: ID!
+  teamId: ID!
+}
+
+extend type Query {
+  teamWaitCount(auctionPlayerId: ID!, teamId: ID!): Int!
+}
+
+extend type Mutation {
+  useWait(input: UseWaitInput!): WaitRequest!
+  adminPause(auctionPlayerId: ID!): AuctionPlayer!
+  adminResume(auctionPlayerId: ID!): AuctionPlayer!
 }

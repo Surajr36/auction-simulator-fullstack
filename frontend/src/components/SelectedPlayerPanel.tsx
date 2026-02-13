@@ -3,10 +3,22 @@ import type {
   AuctionPlayer,
   GetBidsResponse,
   PlaceBidResponse,
+  UseWaitResponse,
+  AdminPauseResponse,
+  AdminResumeResponse,
+  TeamWaitCountResponse,
 } from "../types/graphql";
-import { GET_BIDS_FOR_AUCTION_PLAYER, PLACE_BID } from "../graphql/queries";
+import {
+  GET_BIDS_FOR_AUCTION_PLAYER,
+  PLACE_BID,
+  USE_WAIT,
+  ADMIN_PAUSE,
+  ADMIN_RESUME,
+  GET_TEAM_WAIT_COUNT,
+} from "../graphql/queries";
 import { useState } from "react";
 import { CountdownTimer } from "./CountdownTimer";
+import { useAuth } from "../hooks/useAuth";
 
 type Props = {
   auctionPlayer: AuctionPlayer | null;
@@ -14,6 +26,11 @@ type Props = {
 
 export default function SelectedPlayerPanel({ auctionPlayer }: Props) {
   const auctionPlayerId = auctionPlayer?.id;
+  const { user } = useAuth();
+
+  const isAdmin = user?.role === "ADMIN";
+  const isTeamUser = user?.role === "TEAM_USER";
+  const teamId = user?.team?.id;
 
   const { data, loading, error } = useQuery<GetBidsResponse>(
     GET_BIDS_FOR_AUCTION_PLAYER,
@@ -31,6 +48,24 @@ export default function SelectedPlayerPanel({ auctionPlayer }: Props) {
           variables: auctionPlayerId ? { auctionPlayerId } : undefined,
         },
       ],
+    });
+
+  // WAIT mutations
+  const [useWait, { loading: waitLoading, error: waitError }] =
+    useMutation<UseWaitResponse>(USE_WAIT);
+
+  const [adminPauseMutation, { loading: pauseLoading }] =
+    useMutation<AdminPauseResponse>(ADMIN_PAUSE);
+
+  const [adminResumeMutation, { loading: resumeLoading }] =
+    useMutation<AdminResumeResponse>(ADMIN_RESUME);
+
+  // Team WAIT count query
+  const { data: waitCountData, refetch: refetchWaitCount } =
+    useQuery<TeamWaitCountResponse>(GET_TEAM_WAIT_COUNT, {
+      variables:
+        auctionPlayerId && teamId ? { auctionPlayerId, teamId } : undefined,
+      skip: !auctionPlayer || !teamId,
     });
 
   // hooks must be called unconditionally and in the same order
@@ -103,7 +138,76 @@ export default function SelectedPlayerPanel({ auctionPlayer }: Props) {
             <CountdownTimer
               timerEndAt={auctionPlayer.timerEndAt}
               status={auctionPlayer.status}
+              adminPaused={auctionPlayer.adminPaused}
+              timerRemainingOnPause={auctionPlayer.timerRemainingOnPause}
             />
+
+            {/* Admin Pause/Resume Buttons */}
+            {isAdmin && auctionPlayer.status === "LIVE" && (
+              <div className="mt-2">
+                {auctionPlayer.adminPaused ? (
+                  <button
+                    onClick={async () => {
+                      await adminResumeMutation({
+                        variables: { auctionPlayerId: auctionPlayer.id },
+                      });
+                    }}
+                    disabled={resumeLoading}
+                    className="px-4 py-1.5 rounded font-medium text-sm
+                      bg-green-500 hover:bg-green-600 text-white
+                      disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  >
+                    {resumeLoading ? "Resuming..." : "▶ Resume Timer"}
+                  </button>
+                ) : (
+                  <button
+                    onClick={async () => {
+                      await adminPauseMutation({
+                        variables: { auctionPlayerId: auctionPlayer.id },
+                      });
+                    }}
+                    disabled={pauseLoading}
+                    className="px-4 py-1.5 rounded font-medium text-sm
+                      bg-yellow-500 hover:bg-yellow-600 text-white
+                      disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  >
+                    {pauseLoading ? "Pausing..." : "⏸ Pause Timer"}
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Team WAIT Button */}
+            {isTeamUser && teamId && auctionPlayer.status === "LIVE" && !auctionPlayer.adminPaused && (
+              <div className="mt-2 flex items-center gap-2">
+                <button
+                  onClick={async () => {
+                    await useWait({
+                      variables: {
+                        auctionPlayerId: auctionPlayer.id,
+                        teamId,
+                      },
+                    });
+                    refetchWaitCount();
+                  }}
+                  disabled={
+                    waitLoading ||
+                    (waitCountData?.teamWaitCount ?? 0) <= 0
+                  }
+                  className="px-4 py-1.5 rounded font-medium text-sm
+                    bg-orange-500 hover:bg-orange-600 text-white
+                    disabled:bg-gray-300 disabled:cursor-not-allowed"
+                >
+                  {waitLoading ? "Using WAIT..." : "🖐 Use WAIT (+30s)"}
+                </button>
+                <span className="text-sm text-gray-600">
+                  {waitCountData?.teamWaitCount ?? 2} remaining
+                </span>
+              </div>
+            )}
+            {waitError && (
+              <div className="text-red-500 text-sm mt-1">{waitError.message}</div>
+            )}
           </div>
         )}
 

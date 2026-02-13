@@ -18,6 +18,9 @@ export type AuctionPlayer = {
   currentHighestBidTeam: Team | null;
   timerStartAt?: string; // ISO 8601 timestamp
   timerEndAt?: string; // ISO 8601 timestamp
+  adminPaused: boolean;
+  adminPausedAt?: string;
+  timerRemainingOnPause?: number;
 };
 
 export type GetAuctionPlayersResponse = {
@@ -40,4 +43,26 @@ export type GetBidsResponse = {
 
 export type PlaceBidResponse = {
   placeBid: AuctionPlayer;
+};
+
+export type WaitRequest = {
+  id: string;
+  adminWait: boolean;
+  createdAt: string;
+};
+
+export type UseWaitResponse = {
+  useWait: WaitRequest;
+};
+
+export type AdminPauseResponse = {
+  adminPause: AuctionPlayer;
+};
+
+export type AdminResumeResponse = {
+  adminResume: AuctionPlayer;
+};
+
+export type TeamWaitCountResponse = {
+  teamWaitCount: number;
 };

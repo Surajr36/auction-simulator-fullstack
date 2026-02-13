@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 type Props = {
   timerEndAt?: string; // ISO 8601 timestamp from backend
   status: string;
+  adminPaused?: boolean;
+  timerRemainingOnPause?: number; // milliseconds remaining when paused
 };
 
 /**
@@ -26,9 +28,13 @@ type Props = {
  * - Backend validates timer on every bid
  * - Server time is authoritative (prevents manipulation)
  */
-export function CountdownTimer({ timerEndAt, status }: Props) {
+export function CountdownTimer({ timerEndAt, status, adminPaused, timerRemainingOnPause }: Props) {
   const [remaining, setRemaining] = useState<number>(() => {
     if (status !== "LIVE" || !timerEndAt) return 0;
+    // If admin-paused, show frozen time
+    if (adminPaused && timerRemainingOnPause != null) {
+      return Math.max(0, Math.floor(timerRemainingOnPause / 1000));
+    }
     const now = Date.now();
     const end = new Date(timerEndAt).getTime();
     return Math.max(0, Math.floor((end - now) / 1000));
@@ -36,6 +42,12 @@ export function CountdownTimer({ timerEndAt, status }: Props) {
 
   useEffect(() => {
     if (status !== "LIVE" || !timerEndAt) {
+      return;
+    }
+
+    // If paused, show frozen remaining time and don't tick
+    if (adminPaused && timerRemainingOnPause != null) {
+      setRemaining(Math.max(0, Math.floor(timerRemainingOnPause / 1000)));
       return;
     }
 
@@ -55,7 +67,7 @@ export function CountdownTimer({ timerEndAt, status }: Props) {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [status, timerEndAt]);
+  }, [status, timerEndAt, adminPaused, timerRemainingOnPause]);
 
   if (status !== "LIVE") {
     return null;
@@ -64,13 +76,21 @@ export function CountdownTimer({ timerEndAt, status }: Props) {
   const minutes = Math.floor(remaining / 60);
   const seconds = remaining % 60;
 
-  // Visual urgency: Red when < 10 seconds
-  const colorClass = remaining < 10 ? "text-red-600" : "text-blue-600";
-  const pulseClass = remaining < 10 ? "animate-pulse" : "";
+  // Visual urgency: Red when < 10 seconds, yellow when paused
+  const colorClass = adminPaused
+    ? "text-yellow-600"
+    : remaining < 10
+      ? "text-red-600"
+      : "text-blue-600";
+  const pulseClass = adminPaused ? "" : remaining < 10 ? "animate-pulse" : "";
 
   return (
     <div className={`text-2xl font-bold ${colorClass} ${pulseClass}`}>
-      {minutes}:{seconds.toString().padStart(2, "0")}
+      {adminPaused ? (
+        <span>⏸ PAUSED — {minutes}:{seconds.toString().padStart(2, "0")}</span>
+      ) : (
+        <span>{minutes}:{seconds.toString().padStart(2, "0")}</span>
+      )}
     </div>
   );
 }

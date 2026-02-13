@@ -38,6 +38,21 @@ public class AuctionPlayer {
     @Column
     private Instant timerEndAt;
 
+    /**
+     * Admin pause fields.
+     * adminPaused: true when admin has frozen the timer.
+     * adminPausedAt: when the pause started (used to calc remaining time).
+     * timerRemainingOnPause: milliseconds of timer left when paused.
+     */
+    @Column(nullable = false)
+    private boolean adminPaused = false;
+
+    @Column
+    private Instant adminPausedAt;
+
+    @Column
+    private Long timerRemainingOnPause;
+
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -88,6 +103,18 @@ public class AuctionPlayer {
 
     public Instant getTimerEndAt() {
         return timerEndAt;
+    }
+
+    public boolean isAdminPaused() {
+        return adminPaused;
+    }
+
+    public Instant getAdminPausedAt() {
+        return adminPausedAt;
+    }
+
+    public Long getTimerRemainingOnPause() {
+        return timerRemainingOnPause;
     }
 
     public Instant getCreatedAt() {
@@ -153,6 +180,62 @@ public class AuctionPlayer {
             return false;
         }
         return Instant.now().isAfter(timerEndAt);
+    }
+
+    /* ---- Admin Pause / Resume ---- */
+
+    /**
+     * Admin pauses the timer.
+     * Calculates remaining milliseconds and freezes the countdown.
+     */
+    public void adminPause() {
+        if (status != AuctionPlayerStatus.LIVE) {
+            throw new IllegalStateException("Can only pause LIVE players");
+        }
+        if (adminPaused) {
+            throw new IllegalStateException("Already paused");
+        }
+
+        Instant now = Instant.now();
+        long remainingMs = java.time.Duration.between(now, timerEndAt).toMillis();
+        if (remainingMs < 0) remainingMs = 0;
+
+        this.adminPaused = true;
+        this.adminPausedAt = now;
+        this.timerRemainingOnPause = remainingMs;
+        // timerEndAt is NOT changed — it becomes stale while paused.
+    }
+
+    /**
+     * Admin resumes the timer.
+     * Restores timerEndAt based on the remaining time that was saved on pause.
+     */
+    public void adminResume() {
+        if (!adminPaused) {
+            throw new IllegalStateException("Not currently paused");
+        }
+
+        Instant now = Instant.now();
+        this.timerEndAt = now.plusMillis(timerRemainingOnPause);
+        this.adminPaused = false;
+        this.adminPausedAt = null;
+        this.timerRemainingOnPause = null;
+    }
+
+    /**
+     * Extend timer by the given number of seconds.
+     * Used by Team WAIT (+30 seconds).
+     */
+    public void extendTimer(long seconds) {
+        if (status != AuctionPlayerStatus.LIVE) {
+            throw new IllegalStateException("Can only extend timer for LIVE players");
+        }
+        if (adminPaused) {
+            // If paused, add to the saved remaining time instead
+            this.timerRemainingOnPause += (seconds * 1000);
+        } else {
+            this.timerEndAt = this.timerEndAt.plusSeconds(seconds);
+        }
     }
 
 }

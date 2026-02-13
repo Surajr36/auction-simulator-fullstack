@@ -60,9 +60,9 @@ public class TimerExpiryService {
     public void checkExpiredTimers() {
         Instant now = Instant.now();
         
-        // Find all LIVE players with expired timers
+        // Find all LIVE players with expired timers (skip admin-paused players)
         List<AuctionPlayer> expiredPlayers = auctionPlayerRepository
-                .findByStatusAndTimerEndAtBefore(AuctionPlayerStatus.LIVE, now);
+                .findByStatusAndTimerEndAtBeforeAndAdminPausedFalse(AuctionPlayerStatus.LIVE, now);
         
         for (AuctionPlayer player : expiredPlayers) {
             // Check if any bids exist

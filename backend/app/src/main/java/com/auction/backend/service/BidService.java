@@ -33,8 +33,8 @@ public class BidService {
         AuctionPlayer auctionPlayer = auctionPlayerRepository.findById(auctionPlayerId)
                 .orElseThrow(() -> new DomainException("AuctionPlayer not found"));
 
-        // Validate timer not expired
-        if (auctionPlayer.isTimerExpired()) {
+        // Validate timer not expired (paused players are not expired)
+        if (!auctionPlayer.isAdminPaused() && auctionPlayer.isTimerExpired()) {
             throw new DomainException("Bidding time has expired");
         }
 
@@ -64,8 +64,10 @@ public class BidService {
         // Update auction player state
         auctionPlayer.updateCurrentBid(team, amount);
         
-        // Reset timer to 30 seconds
-        auctionPlayer.resetTimer();
+        // Reset timer to 30 seconds — but NOT if admin has paused
+        if (!auctionPlayer.isAdminPaused()) {
+            auctionPlayer.resetTimer();
+        }
         
         auctionPlayerRepository.save(auctionPlayer);
 
